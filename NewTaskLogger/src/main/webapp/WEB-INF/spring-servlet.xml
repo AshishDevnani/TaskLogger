@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  step 2: create spring configuration file   -->
+<beans xmlns="http://www.springframework.org/schema/beans" 
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+       xmlns:context="http://www.springframework.org/schema/context" 
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:tx="http://www.springframework.org/schema/tx" 
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd 
+       http://www.springframework.org/schema/context 
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx 
+       http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+<context:component-scan base-package="com.logger"/>
+
+<!-- step 3:view resolver   -->
+<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" name="viewResolver">
+<property name="prefix" value="/"  />
+<property name="suffix" value=".jsp"/>
+</bean>
+
+<!-- Database Configuration Starts here (write after pojo classes are written) -->
+<tx:annotation-driven />  <!-- tx schema added for transactional activities  -->
+    
+    <!-- DriverManagerDataSource is an implementation of dataSource hence we provide DB connection properties here and inject into LocalSessionFactoryBean   -->
+     <bean class="org.springframework.jdbc.datasource.DriverManagerDataSource" name="ds">
+    	<property name="driverClassName" value="com.mysql.cj.jdbc.Driver" />
+    	<property name="url" value="jdbc:mysql://localhost/tasklog" />
+    	<property name="username" value="ashish" />
+    	<property name="password" value="Ashish@1992" />
+    </bean>
+    
+    <!--  LocalSessionFactoryBean required datasource, hibernate properties and classes/Entities to be converted into mysql tables   -->
+    <bean class="org.springframework.orm.hibernate5.LocalSessionFactoryBean" name="localSessionFactoryBean">
+    	<property name="dataSource" ref="ds" />
+    	<property name="hibernateProperties">
+    	<props>
+    	<prop key="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</prop>  <!-- Dialect for MySQL-8  -->
+    	<prop key="hibernate.show_sql">true</prop>
+    	<prop key="hibernate.hbm2ddl.auto">update</prop> 
+    	</props>
+    	</property>
+    	<property name="annotatedClasses">
+    	<list>
+    	<value>com.logger.entities.ProjectMaster</value>
+    	<value>com.logger.entities.TaskDetailsMaster</value>
+    	<value>com.logger.entities.UserMaster</value>
+    	</list>
+    	</property>
+    
+    </bean>
+    
+    <!-- Hibernate Template requires SessionFactory(interface) and LocalSessionFactoryBean is implementation  -->
+    <bean class="org.springframework.orm.hibernate5.HibernateTemplate" name="template">
+    	<property name="sessionFactory" ref="localSessionFactoryBean"></property>  
+    </bean>
+    
+    <!-- This bean is required for transactional work  -->
+    <bean class="org.springframework.orm.hibernate5.HibernateTransactionManager" name="transactionManager">
+        <property name="sessionFactory" ref="localSessionFactoryBean"></property>
+    </bean>
+
+
+</beans>
